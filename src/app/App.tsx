@@ -42,7 +42,7 @@ export default function App() {
     try {
       setEvents(await api.events());
     } catch {
-      setNotice("Backend пока недоступен: запусти Spring Boot на localhost:8080.");
+      setNotice("Backend пока недоступен: запусти Python backend на localhost:8000.");
     }
   };
 
