@@ -10,7 +10,7 @@ const stats = [
 
 export function About() {
   return (
-    <section id="about" style={{ background: "#080808", padding: "100px 0", position: "relative", overflow: "hidden" }}>
+    <section id="about" className="about-section" style={{ background: "#080808", padding: "100px 0", position: "relative", overflow: "hidden" }}>
       {/* BG grid */}
       <div
         style={{
@@ -22,15 +22,15 @@ export function About() {
         }}
       />
 
-      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px", position: "relative" }}>
+      <div className="responsive-container" style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px", position: "relative" }}>
         <div
+          className="about-grid"
           style={{
             display: "grid",
             gridTemplateColumns: "1fr 1fr",
             gap: 80,
             alignItems: "center",
           }}
-          className="grid-cols-1 md:grid-cols-2"
         >
           {/* Left: image */}
           <motion.div
@@ -39,7 +39,7 @@ export function About() {
             viewport={{ once: true }}
             style={{ position: "relative" }}
           >
-            <div style={{ position: "relative", aspectRatio: "4/5" }}>
+            <div className="about-image-frame" style={{ position: "relative", aspectRatio: "4/5" }}>
               <ImageWithFallback
                 src="https://images.unsplash.com/photo-1589869088623-d5ead6c32944?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwzfHx1bmRlcmdyb3VuZCUyMGNvbmNlcnQlMjByYXZlJTIwZGFyayUyMHN0YWdlfGVufDF8fHx8MTc3Nzk5NzI1NXww&ixlib=rb-4.1.0&q=80&w=1080"
                 alt="Underground show"
@@ -65,6 +65,7 @@ export function About() {
 
             {/* Floating tag */}
             <div
+              className="about-floating-tag"
               style={{
                 position: "absolute",
                 bottom: 32,
@@ -137,7 +138,7 @@ export function About() {
             </p>
 
             {/* Stats */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 24 }}>
+            <div className="stats-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 24 }}>
               {stats.map((s, i) => (
                 <motion.div
                   key={i}

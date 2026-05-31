@@ -36,8 +36,8 @@ const photos = [
 
 export function Gallery() {
   return (
-    <section id="gallery" style={{ background: "#000", padding: "100px 0" }}>
-      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
+    <section id="gallery" className="gallery-section" style={{ background: "#000", padding: "100px 0" }}>
+      <div className="responsive-container" style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -63,6 +63,7 @@ export function Gallery() {
         </motion.div>
 
         <div
+          className="gallery-grid"
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(3, 1fr)",
@@ -71,6 +72,7 @@ export function Gallery() {
         >
           {photos.map((photo, i) => (
             <motion.div
+              className={`group gallery-item ${photo.span ? "wide" : ""}`}
               key={i}
               initial={{ opacity: 0, scale: 0.97 }}
               whileInView={{ opacity: 1, scale: 1 }}
@@ -83,7 +85,6 @@ export function Gallery() {
                 gridColumn: photo.span === "col-span-2" ? "span 2" : "span 1",
                 cursor: "pointer",
               }}
-              className="group"
               onMouseEnter={(e) => {
                 const img = e.currentTarget.querySelector("img");
                 if (img) img.style.transform = "scale(1.05)";

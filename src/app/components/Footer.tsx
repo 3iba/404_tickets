@@ -2,17 +2,17 @@
 
 export function Footer() {
   return (
-    <footer id="contacts" style={{ background: "#000", borderTop: "1px solid rgba(57,255,20,0.12)", padding: "64px 0 32px" }}>
-      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
+    <footer id="contacts" className="footer-section" style={{ background: "#000", borderTop: "1px solid rgba(57,255,20,0.12)", padding: "64px 0 32px" }}>
+      <div className="responsive-container" style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
         {/* Top */}
         <div
+          className="footer-grid"
           style={{
             display: "grid",
             gridTemplateColumns: "1fr 1fr 1fr",
             gap: 48,
             marginBottom: 64,
           }}
-          className="grid-cols-1 sm:grid-cols-3"
         >
           {/* Brand */}
           <div>
@@ -145,6 +145,7 @@ export function Footer() {
 
         {/* Bottom bar */}
         <div
+          className="footer-bottom"
           style={{
             borderTop: "1px solid rgba(255,255,255,0.06)",
             paddingTop: 24,

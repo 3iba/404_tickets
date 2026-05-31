@@ -38,6 +38,7 @@ export function Hero() {
 
   return (
     <section
+      className="hero-section"
       style={{
         position: "relative",
         minHeight: "100vh",
@@ -78,13 +79,14 @@ export function Hero() {
       </div>
 
       {/* Content */}
-      <div style={{ position: "relative", zIndex: 1, textAlign: "center", padding: "0 24px" }}>
+      <div className="hero-content" style={{ position: "relative", zIndex: 1, textAlign: "center", padding: "0 24px" }}>
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
         >
           <p
+            className="hero-eyebrow"
             style={{
               fontFamily: "'Space Mono', monospace",
               fontSize: 11,
@@ -134,7 +136,7 @@ export function Hero() {
             Андеграундная сцена Казахстана. Мы организовываем концерты, которые не найти ни в каком гиде.
           </p>
 
-          <div style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap" }}>
+          <div className="hero-actions" style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap" }}>
             <a
               href="#events"
               style={{
@@ -206,6 +208,7 @@ export function Hero() {
 
       {/* Error code decoration */}
       <div
+        className="hero-code"
         style={{
           position: "absolute",
           bottom: 80,
