@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Check, LogIn, LogOut, Plus, Shield, ShoppingCart, Ticket, User, X } from "lucide-react";
+import { ArrowLeft, Check, LogIn, LogOut, Plus, Shield, ShoppingCart, Ticket, User, X } from "lucide-react";
 import QRCode from "qrcode";
 import { Hero } from "./components/Hero";
 import { About } from "./components/About";
@@ -82,27 +82,30 @@ export default function App() {
   return (
     <div className="app-shell">
       <style>{styles}</style>
+      <a href="#main" className="skip-link">Пропустить навигацию</a>
       <header className="topbar">
         <button className="brand" onClick={() => go("home")}>404</button>
         <nav aria-label="Главная навигация">
-          <button className={page === "shop" ? "active" : ""} onClick={() => go("shop")}><ShoppingCart size={16} /> Билеты</button>
-          <button className={page === "profile" ? "active" : ""} onClick={() => go("profile")}><User size={16} /> Профиль</button>
+          <button className={page === "shop" ? "active" : ""} aria-current={page === "shop" ? "page" : undefined} onClick={() => go("shop")}><ShoppingCart size={16} /> Билеты</button>
+          <button className={page === "profile" ? "active" : ""} aria-current={page === "profile" ? "page" : undefined} onClick={() => go("profile")}><User size={16} /> Профиль</button>
         </nav>
       </header>
 
       {notice && <div className="notice">{notice}</div>}
 
-      {page === "home" && (
-        <>
-          <Hero />
-          <ShopPreview events={events} onBuy={() => go("shop")} />
-          <About />
-          <Gallery />
-          <Footer />
-        </>
-      )}
-      {page === "shop" && <ShopPage events={events} refreshEvents={refreshEvents} user={user} />}
-      {page === "profile" && <ProfilePage user={user} authChecked={authChecked} setUser={setUser} refreshPublicEvents={refreshEvents} />}
+      <div id="main" tabIndex={-1}>
+        {page === "home" && (
+          <>
+            <Hero />
+            <ShopPreview events={events} onBuy={() => go("shop")} />
+            <About />
+            <Gallery />
+            <Footer />
+          </>
+        )}
+        {page === "shop" && <ShopPage events={events} refreshEvents={refreshEvents} user={user} onHome={() => go("home")} />}
+        {page === "profile" && <ProfilePage user={user} authChecked={authChecked} setUser={setUser} refreshPublicEvents={refreshEvents} />}
+      </div>
     </div>
   );
 }
@@ -134,7 +137,7 @@ function ShopPreview({ events, onBuy }: { events: EventDto[]; onBuy: () => void 
   );
 }
 
-function ShopPage({ events, refreshEvents, user }: { events: EventDto[]; refreshEvents: () => Promise<void>; user: UserDto | null }) {
+function ShopPage({ events, refreshEvents, user, onHome }: { events: EventDto[]; refreshEvents: () => Promise<void>; user: UserDto | null; onHome: () => void }) {
   const activeEvents = useMemo(() => events.filter((event) => event.status !== "HIDDEN"), [events]);
   const [selectedId, setSelectedId] = useState<number | "">("");
   const [quantity, setQuantity] = useState(1);
@@ -189,6 +192,11 @@ function ShopPage({ events, refreshEvents, user }: { events: EventDto[]; refresh
   return (
     <main className="page">
       <div className="section-head">
+        <div className="mobile-nav-row">
+          <button className="ghost" onClick={onHome}>
+            <ArrowLeft size={16} /> На главную
+          </button>
+        </div>
         <span>// ONLINE_TICKET_GATE</span>
         <h1>Покупка билета</h1>
       </div>
@@ -467,6 +475,9 @@ function AdminPanel({ refreshPublicEvents }: { refreshPublicEvents: () => Promis
 }
 
 const styles = `
+  /* Accessibility: skip link */
+  .skip-link { position: absolute; left: -9999px; top: auto; width: 1px; height: 1px; overflow: hidden; }
+  .skip-link:focus { position: fixed; left: 16px; top: 12px; width: auto; height: auto; padding: 8px 12px; background: #39ff14; color: #000; z-index: 9999; border-radius: 6px; text-decoration: none; font-weight: 700; }
   * { box-sizing: border-box; }
   html, body, #root { width: 100%; min-height: 100%; overflow-x: hidden; }
   .app-shell { min-height: 100vh; background: #000; color: #fff; font-family: 'Space Grotesk', sans-serif; overflow-x: hidden; }
@@ -475,6 +486,8 @@ const styles = `
   .topbar nav, .tabs { display: flex; gap: 10px; align-items: center; }
   .topbar nav button, .tabs button, .ghost, .row-actions button { min-height: 42px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.04); color: rgba(255,255,255,.72); padding: 10px 14px; cursor: pointer; font-family: 'Space Mono', monospace; font-size: 12px; white-space: nowrap; }
   .topbar nav button.active, .topbar nav button:hover, .tabs button.active, .tabs button:hover, .ghost:hover { border-color: #39ff14; color: #39ff14; }
+  .mobile-nav-row { margin-bottom: 16px; display: flex; gap: 10px; align-items: center; }
+  @media (min-width: 900px) { .mobile-nav-row { display: none; } }
   .notice { position: fixed; top: 76px; left: 50%; transform: translateX(-50%); z-index: 90; width: min(720px, calc(100vw - 32px)); padding: 10px 18px; background: #151515; border: 1px solid #39ff14; color: #39ff14; text-align: center; }
   .page, .section { width: min(1200px, 100%); margin: 0 auto; padding: 112px 24px 72px; }
   .responsive-container { width: min(1200px, 100%); }

@@ -1,6 +1,9 @@
 ﻿import { motion } from "motion/react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 
+const guitarSrc = new URL("../../assets/guitar.png", import.meta.url).href;
+const micSrc = new URL("../../assets/mic.png", import.meta.url).href;
+
 const photos = [
   {
     src: "https://images.unsplash.com/photo-1688981935353-07e2d0142648?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx1bmRlcmdyb3VuZCUyMGNvbmNlcnQlMjByYXZlJTIwZGFyayUyMHN0YWdlfGVufDF8fHx8MTc3Nzk5NzI1NXww&ixlib=rb-4.1.0&q=80&w=1080",
@@ -36,7 +39,41 @@ const photos = [
 
 export function Gallery() {
   return (
-    <section id="gallery" className="gallery-section" style={{ background: "#000", padding: "100px 0" }}>
+    <section id="gallery" className="gallery-section" style={{ background: "#000", padding: "100px 0", position: "relative", overflow: "hidden" }}>
+      <img
+        src={micSrc}
+        alt=""
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          left: -64,
+          bottom: 182,
+          width: 260,
+          maxWidth: "35vw",
+          opacity: 0.16,
+          pointerEvents: "none",
+          userSelect: "none",
+          transform: "rotate(-8deg)",
+          filter: "brightness(1.1) drop-shadow(0 0 36px rgba(57,255,20,0.18))",
+        }}
+      />
+      <img
+        src={guitarSrc}
+        alt=""
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          top: 12,
+          right: -30,
+          width: 480,
+          maxWidth: "60vw",
+          opacity: 0.18,
+          pointerEvents: "none",
+          userSelect: "none",
+          transform: "rotate(10deg)",
+          filter: "brightness(1.14) drop-shadow(0 0 48px rgba(57,255,20,0.22))",
+        }}
+      />
       <div className="responsive-container" style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
