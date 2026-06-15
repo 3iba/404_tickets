@@ -112,7 +112,7 @@ export default function App() {
 
 function ShopPreview({ events, onBuy }: { events: EventDto[]; onBuy: () => void }) {
   return (
-    <section className="section">
+    <section id="events" className="section">
       <div className="section-head">
         <span>// БЛИЖАЙШИЕ_МЕРОПРИЯТИЯ</span>
         <h2>СОБЫТИЯ</h2>

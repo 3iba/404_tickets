@@ -1,6 +1,12 @@
 ﻿import { Instagram, Send, Youtube, Mail } from "lucide-react";
 
 export function Footer() {
+    const links = [
+    { label: "МЕРОПРИЯТИЯ", href: "#events" },
+    { label: "О НАС", href: "#about" },
+    { label: "ГАЛЕРЕЯ", href: "#gallery" },
+    { label: "КОНТАКТЫ", href: "#contacts" },
+  ];
   return (
     <footer id="contacts" className="footer-section" style={{ background: "#000", borderTop: "1px solid rgba(57,255,20,0.12)", padding: "64px 0 32px" }}>
       <div className="responsive-container" style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
@@ -42,9 +48,8 @@ export function Footer() {
             </p>
             <div style={{ display: "flex", gap: 16, marginTop: 24 }}>
               {[
-                { icon: <Instagram size={18} />, href: "#" },
-                { icon: <Send size={18} />, href: "#" },
-                { icon: <Youtube size={18} />, href: "#" },
+                { icon: <Instagram size={18} />, href: "https://www.instagram.com/404_studio_astana/" },
+                { icon: <Send size={18} />, href: "https://t.me/tickets404bot" }
               ].map((s, i) => (
                 <a
                   key={i}
@@ -85,10 +90,9 @@ export function Footer() {
               НАВИГАЦИЯ
             </p>
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              {["МЕРОПРИЯТИЯ", "О НАС", "ГАЛЕРЕЯ", "АРХИВ"].map((l) => (
+              {links.map((l) => (
                 <a
-                  key={l}
-                  href="#"
+                  href={l.href}
                   style={{
                     fontFamily: "'Space Grotesk', sans-serif",
                     fontSize: 14,
@@ -99,8 +103,7 @@ export function Footer() {
                   }}
                   onMouseEnter={(e) => { (e.target as HTMLElement).style.color = "#39FF14"; }}
                   onMouseLeave={(e) => { (e.target as HTMLElement).style.color = "rgba(255,255,255,0.4)"; }}
-                >
-                  {l}
+                >{l.label}
                 </a>
               ))}
             </div>
@@ -136,7 +139,7 @@ export function Footer() {
                   href="#"
                   style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 14, color: "rgba(255,255,255,0.6)", textDecoration: "none" }}
                 >
-                  @org404kz
+                  @tickets404bot
                 </a>
               </div>
             </div>
