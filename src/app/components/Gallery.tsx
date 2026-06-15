@@ -3,6 +3,8 @@ import { ImageWithFallback } from "./figma/ImageWithFallback";
 
 const guitarSrc = new URL("../../assets/guitar.png", import.meta.url).href;
 const micSrc = new URL("../../assets/mic.png", import.meta.url).href;
+const gallery1Src = new URL("./ui/gallery1.jpg", import.meta.url).href;
+const gallery2Src = new URL("./ui/gallery2.jpg", import.meta.url).href;
 
 const photos = [
   {
@@ -11,8 +13,13 @@ const photos = [
     span: "col-span-2",
   },
   {
-    src: "https://images.unsplash.com/photo-1629276299949-245a60b0be88?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwyfHxjb25jZXJ0JTIwY3Jvd2QlMjBuaWdodCUyMG11c2ljJTIwZmVzdGl2YWx8ZW58MXx8fHwxNzc3OTk3MjU1fDA&ixlib=rb-4.1.0&q=80&w=1080",
+    src: gallery1Src,
     label: "НУЛЕВОЙ УРОВЕНЬ #3",
+    span: "",
+  },
+  {
+    src: gallery2Src,
+    label: "ГАЛЕРЕЯ #1",
     span: "",
   },
   {
