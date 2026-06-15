@@ -1,5 +1,6 @@
 const defaultApiBase = `${window.location.protocol}//${window.location.hostname}:8000/api`;
 const API_BASE = import.meta.env.VITE_API_BASE_URL || defaultApiBase;
+const API_ORIGIN = API_BASE.replace(/\/api\/?$/, "");
 const TOKEN_KEY = "ticketing_auth_token";
 
 export class ApiError extends Error {
@@ -89,6 +90,25 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   return response.json() as Promise<T>;
 }
 
+async function upload<T>(path: string, file: File): Promise<T> {
+  const token = localStorage.getItem(TOKEN_KEY);
+  const response = await fetch(`${API_BASE}${path}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": file.type,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: file,
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new ApiError(response.status, text || `HTTP ${response.status}`);
+  }
+
+  return response.json() as Promise<T>;
+}
+
 export const api = {
   tokenKey: TOKEN_KEY,
   getToken: () => localStorage.getItem(TOKEN_KEY),
@@ -128,6 +148,12 @@ export const api = {
     request<EventDto>("/admin/events", { method: "POST", body: JSON.stringify(payload) }),
   updateEvent: (id: number, payload: Partial<EventDto> & { title: string; venue: string; city: string; startAt: string; price: number }) =>
     request<EventDto>(`/admin/events/${id}`, { method: "PUT", body: JSON.stringify(payload) }),
+  uploadPoster: async (file: File) => {
+    const result = await upload<{ posterUrl: string }>("/admin/uploads/poster", file);
+    return {
+      posterUrl: result.posterUrl.startsWith("/") ? `${API_ORIGIN}${result.posterUrl}` : result.posterUrl,
+    };
+  },
   adminOrders: () => request<OrderDto[]>("/admin/orders"),
   confirmOrder: (orderCode: string) => request<OrderDto>(`/admin/orders/${orderCode}/confirm`, { method: "PATCH" }),
   cancelOrder: (orderCode: string) => request<OrderDto>(`/admin/orders/${orderCode}/cancel`, { method: "PATCH" }),

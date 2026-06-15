@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, Check, LogIn, LogOut, Plus, Shield, ShoppingCart, Ticket, User, X } from "lucide-react";
+import { ArrowLeft, Check, ImagePlus, LogIn, LogOut, Plus, Shield, ShoppingCart, Ticket, User, X } from "lucide-react";
 import QRCode from "qrcode";
 import { Hero } from "./components/Hero";
 import { About } from "./components/About";
@@ -119,7 +119,8 @@ function ShopPreview({ events, onBuy }: { events: EventDto[]; onBuy: () => void 
       </div>
       <div className="event-list">
         {events.slice(0, 3).map((event) => (
-          <article className="event-row" key={event.id}>
+          <article className={`event-row ${event.posterUrl ? "with-poster" : ""}`} key={event.id}>
+            {event.posterUrl && <img className="event-poster-thumb" src={event.posterUrl} alt="" />}
             <div className="date-tile">
               <b>{new Date(event.startAt).getDate()}</b>
               <small>{new Intl.DateTimeFormat("ru-RU", { month: "short" }).format(new Date(event.startAt))}</small>
@@ -150,6 +151,20 @@ function ShopPage({ events, refreshEvents, user, onHome }: { events: EventDto[];
   const [comment, setComment] = useState("");
   const [busy, setBusy] = useState(false);
   const selectedEvent = activeEvents.find((event) => event.id === selectedId);
+  const requiredFields = {
+    firstName: !firstName.trim(),
+    lastName: !lastName.trim(),
+    email: !email.trim(),
+    phone: !phone.trim(),
+    telegramUsername: !telegramUsername.trim(),
+  };
+  const isOrderFormValid = Boolean(
+    selectedEvent &&
+    selectedEvent.status === "ACTIVE" &&
+    quantity >= 1 &&
+    quantity <= 5 &&
+    !Object.values(requiredFields).some(Boolean)
+  );
 
   useEffect(() => {
     refreshEvents();
@@ -170,7 +185,7 @@ function ShopPage({ events, refreshEvents, user, onHome }: { events: EventDto[];
   }, [user]);
 
   const submit = async () => {
-    if (!selectedEvent || !firstName.trim() || !lastName.trim()) return;
+    if (!isOrderFormValid || !selectedEvent) return;
     setBusy(true);
     try {
       setOrder(await api.createOrder({ eventId: selectedEvent.id, quantity, firstName, lastName, email, phone, telegramUsername }));
@@ -204,6 +219,7 @@ function ShopPage({ events, refreshEvents, user, onHome }: { events: EventDto[];
         <div className="event-grid">
           {activeEvents.map((event) => (
             <button className={`event-card ${selectedId === event.id ? "picked" : ""}`} key={event.id} onClick={() => setSelectedId(event.id)}>
+              {event.posterUrl && <img className="event-card-poster" src={event.posterUrl} alt="" />}
               <span>{statusText[event.status] || event.status}</span>
               <h3>{event.title}</h3>
               <p>{event.subtitle}</p>
@@ -217,12 +233,12 @@ function ShopPage({ events, refreshEvents, user, onHome }: { events: EventDto[];
             <>
               <h2>Данные заказа</h2>
               <label>Количество<input type="number" min={1} max={5} value={quantity} onChange={(e) => setQuantity(Math.max(1, Math.min(5, Number(e.target.value))))} /></label>
-              <label>Имя<input value={firstName} onChange={(e) => setFirstName(e.target.value)} /></label>
-              <label>Фамилия<input value={lastName} onChange={(e) => setLastName(e.target.value)} /></label>
-              <label>Email<input value={email} onChange={(e) => setEmail(e.target.value)} /></label>
-              <label>Телефон<input value={phone} onChange={(e) => setPhone(e.target.value)} /></label>
-              <label>Telegram username<input value={telegramUsername} onChange={(e) => setTelegramUsername(e.target.value)} placeholder="@username" /></label>
-              <button className="primary wide" disabled={!selectedEvent || busy || selectedEvent.status !== "ACTIVE"} onClick={submit}>
+              <label>Имя<input className={requiredFields.firstName ? "field-error" : ""} required value={firstName} onChange={(e) => setFirstName(e.target.value)} /></label>
+              <label>Фамилия<input className={requiredFields.lastName ? "field-error" : ""} required value={lastName} onChange={(e) => setLastName(e.target.value)} /></label>
+              <label>Email<input className={requiredFields.email ? "field-error" : ""} required value={email} onChange={(e) => setEmail(e.target.value)} /></label>
+              <label>Телефон<input className={requiredFields.phone ? "field-error" : ""} required value={phone} onChange={(e) => setPhone(e.target.value)} /></label>
+              <label>Telegram username<input className={requiredFields.telegramUsername ? "field-error" : ""} required value={telegramUsername} onChange={(e) => setTelegramUsername(e.target.value)} placeholder="@username" /></label>
+              <button className="primary wide" disabled={!isOrderFormValid || busy} onClick={submit}>
                 <ShoppingCart size={16} /> Создать заказ
               </button>
             </>
@@ -379,6 +395,8 @@ function AdminPanel({ refreshPublicEvents }: { refreshPublicEvents: () => Promis
   const [events, setEvents] = useState<EventDto[]>([]);
   const [scanCode, setScanCode] = useState("");
   const [message, setMessage] = useState("");
+  const [posterUploading, setPosterUploading] = useState(false);
+  const posterInputRef = useRef<HTMLInputElement | null>(null);
   const [form, setForm] = useState({
     title: "",
     subtitle: "",
@@ -389,6 +407,7 @@ function AdminPanel({ refreshPublicEvents }: { refreshPublicEvents: () => Promis
     currency: "KZT",
     paymentDetails: "",
     description: "",
+    posterUrl: "",
     status: "ACTIVE",
   });
 
@@ -413,9 +432,23 @@ function AdminPanel({ refreshPublicEvents }: { refreshPublicEvents: () => Promis
 
   const saveEvent = async () => {
     await api.saveEvent(form);
-    setForm({ ...form, title: "", subtitle: "", description: "" });
+    setForm({ ...form, title: "", subtitle: "", description: "", posterUrl: "" });
     await load();
     await refreshPublicEvents();
+  };
+
+  const uploadPoster = async (file: File | undefined) => {
+    if (!file) return;
+    setPosterUploading(true);
+    setMessage("");
+    try {
+      const result = await api.uploadPoster(file);
+      setForm((value) => ({ ...value, posterUrl: result.posterUrl }));
+    } catch {
+      setMessage("Не получилось загрузить афишу. Используй JPG, PNG, WEBP или GIF до 8 МБ.");
+    } finally {
+      setPosterUploading(false);
+    }
   };
 
   const checkIn = async () => {
@@ -433,6 +466,33 @@ function AdminPanel({ refreshPublicEvents }: { refreshPublicEvents: () => Promis
       <div className="admin-grid">
         <div className="panel">
           <h2>Новая афиша</h2>
+          <div className={`poster-upload ${form.posterUrl ? "has-poster" : ""}`} onClick={() => posterInputRef.current?.click()}>
+            {form.posterUrl ? (
+              <img src={form.posterUrl} alt="Афиша мероприятия" />
+            ) : (
+              <div className="poster-upload-empty">
+                <ImagePlus size={28} />
+                <strong>Загрузить афишу</strong>
+                <span>JPG, PNG, WEBP или GIF до 8 МБ</span>
+              </div>
+            )}
+            <input
+              ref={posterInputRef}
+              type="file"
+              accept="image/png,image/jpeg,image/webp,image/gif"
+              onChange={(e) => uploadPoster(e.target.files?.[0])}
+            />
+          </div>
+          <div className="poster-actions">
+            <button className="ghost" type="button" disabled={posterUploading} onClick={() => posterInputRef.current?.click()}>
+              <ImagePlus size={16} /> {posterUploading ? "Загрузка..." : "Выбрать файл"}
+            </button>
+            {form.posterUrl && (
+              <button className="ghost" type="button" onClick={() => setForm({ ...form, posterUrl: "" })}>
+                <X size={16} /> Убрать
+              </button>
+            )}
+          </div>
           <label>Название<input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></label>
           <label>Подзаголовок<input value={form.subtitle} onChange={(e) => setForm({ ...form, subtitle: e.target.value })} /></label>
           <label>Площадка<input value={form.venue} onChange={(e) => setForm({ ...form, venue: e.target.value })} /></label>
@@ -468,7 +528,7 @@ function AdminPanel({ refreshPublicEvents }: { refreshPublicEvents: () => Promis
       </div>
       <h2 className="subhead">События в базе</h2>
       <div className="event-grid compact-grid">
-        {events.map((event) => <div className="event-card readonly" key={event.id}><span>{statusText[event.status]}</span><h3>{event.title}</h3><p>{dateTime(event.startAt)}</p><b>{money(event.price, event.currency)}</b></div>)}
+        {events.map((event) => <div className="event-card readonly" key={event.id}>{event.posterUrl && <img className="event-card-poster" src={event.posterUrl} alt="" />}<span>{statusText[event.status]}</span><h3>{event.title}</h3><p>{dateTime(event.startAt)}</p><b>{money(event.price, event.currency)}</b></div>)}
       </div>
     </div>
   );
@@ -502,6 +562,7 @@ const styles = `
   .event-card { min-height: 210px; text-align: left; padding: 22px; border: 1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.025); color: #fff; cursor: pointer; display: flex; flex-direction: column; gap: 10px; min-width: 0; width: 100%; }
   .event-card.picked, .event-card:hover { border-color: rgba(57,255,20,.65); background: rgba(57,255,20,.055); }
   .event-card.readonly { cursor: default; }
+  .event-card-poster { width: 100%; aspect-ratio: 4 / 5; object-fit: contain; border: 1px solid rgba(57,255,20,.22); background: #050505; margin-bottom: 4px; }
   .event-card span, .event-row p { margin: 0; color: #39ff14; font-family: 'Space Mono', monospace; font-size: 11px; overflow-wrap: anywhere; }
   .event-card h3, .event-row h3, .panel h2, .subhead { margin: 0; font-family: 'Unbounded', monospace; line-height: 1.2; overflow-wrap: anywhere; }
   .event-card p, .event-card small, .event-row span, .muted { color: rgba(255,255,255,.58); overflow-wrap: anywhere; }
@@ -509,6 +570,8 @@ const styles = `
   .event-list { display: flex; flex-direction: column; gap: 2px; }
   .event-list.spaced { margin-top: 18px; gap: 10px; }
   .event-row { display: grid; grid-template-columns: 86px minmax(0, 1fr) auto; gap: 20px; align-items: center; padding: 22px; border: 1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.025); min-width: 0; }
+  .event-row.with-poster { grid-template-columns: 92px 86px minmax(0, 1fr) auto; }
+  .event-poster-thumb { width: 92px; aspect-ratio: 4 / 5; object-fit: cover; border: 1px solid rgba(57,255,20,.24); background: #050505; }
   .row-main { min-width: 0; }
   .date-tile b { display: block; color: #39ff14; font-size: 30px; font-family: 'Unbounded', monospace; line-height: 1; }
   .event-row small { color: rgba(255,255,255,.48); }
@@ -520,8 +583,19 @@ const styles = `
   .tabs { margin: -12px 0 24px; overflow-x: auto; padding-bottom: 4px; }
   label { display: grid; gap: 7px; margin: 14px 0; color: rgba(255,255,255,.74); font-size: 13px; }
   input, textarea { width: 100%; min-height: 42px; border: 1px solid rgba(255,255,255,.14); background: #050505; color: #fff; padding: 10px 12px; outline: none; font: inherit; font-size: 16px; }
+  input[type="file"] { display: none; }
   textarea { min-height: 94px; resize: vertical; }
   input:focus, textarea:focus { border-color: #39ff14; }
+  input.field-error { border-color: #ff3b3b; box-shadow: 0 0 0 1px rgba(255,59,59,.55), 0 0 18px rgba(255,59,59,.14); }
+  input.field-error:focus { border-color: #ff5a5a; box-shadow: 0 0 0 1px rgba(255,90,90,.8), 0 0 20px rgba(255,59,59,.18); }
+  .poster-upload { margin: 18px 0 10px; min-height: 220px; border: 1px dashed rgba(57,255,20,.42); background: linear-gradient(135deg, rgba(57,255,20,.08), rgba(255,255,255,.025)); display: grid; place-items: center; cursor: pointer; overflow: hidden; }
+  .poster-upload:hover { border-color: #39ff14; background: rgba(57,255,20,.08); }
+  .poster-upload.has-poster { border-style: solid; background: #050505; }
+  .poster-upload img { width: 100%; height: 100%; max-height: 340px; object-fit: cover; display: block; }
+  .poster-upload-empty { display: grid; justify-items: center; gap: 8px; padding: 28px; text-align: center; color: rgba(255,255,255,.72); }
+  .poster-upload-empty svg, .poster-upload-empty strong { color: #39ff14; }
+  .poster-upload-empty span { font-family: 'Space Mono', monospace; font-size: 11px; color: rgba(255,255,255,.5); }
+  .poster-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 16px; }
   .payment { white-space: pre-wrap; background: #050505; border: 1px dashed rgba(57,255,20,.35); padding: 14px; color: #d7fbe0; overflow-x: auto; }
   .codes { display: flex; gap: 8px; flex-wrap: wrap; margin: 16px 0; }
   .codes code { border: 1px solid rgba(57,255,20,.32); color: #39ff14; padding: 7px 9px; overflow-wrap: anywhere; }
@@ -577,6 +651,9 @@ const styles = `
     .event-grid { grid-template-columns: 1fr; }
     .event-card { min-height: 152px; padding: 16px; }
     .event-row { grid-template-columns: 56px minmax(0, 1fr); gap: 12px; padding: 14px; align-items: start; }
+    .event-row.with-poster { grid-template-columns: 72px minmax(0, 1fr); }
+    .event-row.with-poster .date-tile { grid-column: 1 / -1; display: flex; align-items: baseline; gap: 8px; }
+    .event-poster-thumb { width: 72px; grid-row: 1; }
     .event-row > button, .event-row > strong, .event-row > .row-actions { grid-column: 1 / -1; width: 100%; justify-content: center; }
     .event-row > strong { display: block; text-align: center; padding: 10px 0 0; color: #39ff14; }
     .event-row h3 { font-size: 16px; }
@@ -593,6 +670,8 @@ const styles = `
   }
   @media (max-width: 420px) {
     .event-row { grid-template-columns: 1fr; }
+    .event-row.with-poster { grid-template-columns: 1fr; }
+    .event-poster-thumb { width: 100%; aspect-ratio: 16 / 9; }
     .date-tile { display: flex; align-items: baseline; gap: 8px; }
     .date-tile b { font-size: 24px; }
     .topbar nav button, .ghost, .tabs button { min-height: 44px; }
