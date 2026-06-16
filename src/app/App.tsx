@@ -32,6 +32,9 @@ const dateTime = (value: string) =>
     minute: "2-digit",
   }).format(new Date(value));
 
+const isDisplayablePoster = (value?: string) =>
+  Boolean(value && (value.startsWith("http://") || value.startsWith("https://") || value.startsWith("/") || value.startsWith("data:")));
+
 export default function App() {
   const [page, setPage] = useState<Page>(() => (localStorage.getItem("ticketing_last_page") as Page) || "home");
   const [events, setEvents] = useState<EventDto[]>([]);
@@ -119,8 +122,8 @@ function ShopPreview({ events, onBuy }: { events: EventDto[]; onBuy: () => void 
       </div>
       <div className="event-list">
         {events.slice(0, 3).map((event) => (
-          <article className={`event-row ${event.posterUrl ? "with-poster" : ""}`} key={event.id}>
-            {event.posterUrl && <img className="event-poster-thumb" src={event.posterUrl} alt="" />}
+          <article className={`event-row ${isDisplayablePoster(event.posterUrl) ? "with-poster" : ""}`} key={event.id}>
+            {isDisplayablePoster(event.posterUrl) && <img className="event-poster-thumb" src={event.posterUrl} alt="" />}
             <div className="date-tile">
               <b>{new Date(event.startAt).getDate()}</b>
               <small>{new Intl.DateTimeFormat("ru-RU", { month: "short" }).format(new Date(event.startAt))}</small>
@@ -219,7 +222,7 @@ function ShopPage({ events, refreshEvents, user, onHome }: { events: EventDto[];
         <div className="event-grid">
           {activeEvents.map((event) => (
             <button className={`event-card ${selectedId === event.id ? "picked" : ""}`} key={event.id} onClick={() => setSelectedId(event.id)}>
-              {event.posterUrl && <img className="event-card-poster" src={event.posterUrl} alt="" />}
+              {isDisplayablePoster(event.posterUrl) && <img className="event-card-poster" src={event.posterUrl} alt="" />}
               <span>{statusText[event.status] || event.status}</span>
               <h3>{event.title}</h3>
               <p>{event.subtitle}</p>
@@ -227,6 +230,17 @@ function ShopPage({ events, refreshEvents, user, onHome }: { events: EventDto[];
               <b>{money(event.price, event.currency)}</b>
             </button>
           ))}
+          {selectedEvent && (
+            <article className="selected-event-detail">
+              <span>// SELECTED_EVENT</span>
+              <h2>{selectedEvent.title}</h2>
+              <p>{selectedEvent.description || selectedEvent.subtitle || "Описание для этого мероприятия пока не заполнено."}</p>
+              <div>
+                <b>{selectedEvent.venue}, {selectedEvent.city}</b>
+                <small>{dateTime(selectedEvent.startAt)}</small>
+              </div>
+            </article>
+          )}
         </div>
         <div className="panel sticky-panel">
           {!order ? (
@@ -499,6 +513,7 @@ function AdminPanel({ refreshPublicEvents }: { refreshPublicEvents: () => Promis
           <label>Город<input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} /></label>
           <label>Дата и время<input type="datetime-local" value={form.startAt} onChange={(e) => setForm({ ...form, startAt: e.target.value })} /></label>
           <label>Цена<input type="number" value={form.price} onChange={(e) => setForm({ ...form, price: Number(e.target.value) })} /></label>
+          <label>Описание<textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Атмосфера, участники, тайминг или важные детали мероприятия" /></label>
           <label>Реквизиты<textarea value={form.paymentDetails} onChange={(e) => setForm({ ...form, paymentDetails: e.target.value })} /></label>
           <button className="primary wide" onClick={saveEvent}><Plus size={16} /> Добавить</button>
         </div>
@@ -528,7 +543,7 @@ function AdminPanel({ refreshPublicEvents }: { refreshPublicEvents: () => Promis
       </div>
       <h2 className="subhead">События в базе</h2>
       <div className="event-grid compact-grid">
-        {events.map((event) => <div className="event-card readonly" key={event.id}>{event.posterUrl && <img className="event-card-poster" src={event.posterUrl} alt="" />}<span>{statusText[event.status]}</span><h3>{event.title}</h3><p>{dateTime(event.startAt)}</p><b>{money(event.price, event.currency)}</b></div>)}
+        {events.map((event) => <div className="event-card readonly" key={event.id}>{isDisplayablePoster(event.posterUrl) && <img className="event-card-poster" src={event.posterUrl} alt="" />}<span>{statusText[event.status]}</span><h3>{event.title}</h3><p>{dateTime(event.startAt)}</p><b>{money(event.price, event.currency)}</b></div>)}
       </div>
     </div>
   );
@@ -563,6 +578,12 @@ const styles = `
   .event-card.picked, .event-card:hover { border-color: rgba(57,255,20,.65); background: rgba(57,255,20,.055); }
   .event-card.readonly { cursor: default; }
   .event-card-poster { width: 100%; aspect-ratio: 4 / 5; object-fit: contain; border: 1px solid rgba(57,255,20,.22); background: #050505; margin-bottom: 4px; }
+  .selected-event-detail { grid-column: 1 / -1; display: grid; gap: 10px; padding: 22px; border: 1px solid rgba(57,255,20,.32); background: linear-gradient(135deg, rgba(57,255,20,.09), rgba(255,255,255,.025)); min-width: 0; }
+  .selected-event-detail span { color: #39ff14; font-family: 'Space Mono', monospace; font-size: 11px; }
+  .selected-event-detail h2 { margin: 0; font-family: 'Unbounded', monospace; line-height: 1.15; overflow-wrap: anywhere; }
+  .selected-event-detail p { margin: 0; color: rgba(255,255,255,.78); line-height: 1.55; overflow-wrap: anywhere; }
+  .selected-event-detail div { display: flex; flex-wrap: wrap; gap: 8px 16px; color: rgba(255,255,255,.58); }
+  .selected-event-detail small { color: rgba(255,255,255,.58); }
   .event-card span, .event-row p { margin: 0; color: #39ff14; font-family: 'Space Mono', monospace; font-size: 11px; overflow-wrap: anywhere; }
   .event-card h3, .event-row h3, .panel h2, .subhead { margin: 0; font-family: 'Unbounded', monospace; line-height: 1.2; overflow-wrap: anywhere; }
   .event-card p, .event-card small, .event-row span, .muted { color: rgba(255,255,255,.58); overflow-wrap: anywhere; }
